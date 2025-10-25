@@ -1,0 +1,86 @@
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"aitrading/config"
+	"aitrading/hyperliquid"
+)
+
+func main() {
+	fmt.Println("Testing Hyperliquid API data fetching...")
+	fmt.Println("==========================================")
+
+	// Load config
+	cfg, err := config.Load("config.yaml")
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
+
+	// Create client
+	client := hyperliquid.NewClient(cfg.Hyperliquid.APIURL)
+
+	// Test 1: Get market data
+	fmt.Println("\n1. Testing market data fetch for ETH...")
+	marketData, err := client.GetMarketData(cfg.Trading.Symbol)
+	if err != nil {
+		log.Fatalf("Failed to get market data: %v", err)
+	}
+
+	fmt.Printf("   Symbol: %s\n", marketData.Symbol)
+	fmt.Printf("   Current Price: $%.2f\n", marketData.CurrentPrice)
+	fmt.Printf("   24h Change: %.2f%%\n", marketData.PriceChange)
+	fmt.Printf("   24h Volume: $%.2f\n", marketData.Volume24h)
+	fmt.Printf("   24h High: $%.2f\n", marketData.High24h)
+	fmt.Printf("   24h Low: $%.2f\n", marketData.Low24h)
+
+	if marketData.CurrentPrice == 0 {
+		fmt.Println("   ❌ ERROR: Price is still 0!")
+	} else {
+		fmt.Println("   ✅ SUCCESS: Got valid price data!")
+	}
+
+	// Test 2: Get candle data
+	fmt.Println("\n2. Testing candlestick data fetch...")
+	candles, err := client.GetCandlestickData(cfg.Trading.Symbol, cfg.Trading.Timeframe, 10)
+	if err != nil {
+		log.Fatalf("Failed to get candle data: %v", err)
+	}
+
+	fmt.Printf("   Fetched %d candles\n", len(candles))
+	if len(candles) > 0 {
+		lastCandle := candles[len(candles)-1]
+		fmt.Printf("   Latest candle:\n")
+		fmt.Printf("     Open: $%.2f\n", lastCandle.Open)
+		fmt.Printf("     High: $%.2f\n", lastCandle.High)
+		fmt.Printf("     Low: $%.2f\n", lastCandle.Low)
+		fmt.Printf("     Close: $%.2f\n", lastCandle.Close)
+		fmt.Printf("     Volume: %.2f\n", lastCandle.Volume)
+
+		if lastCandle.Close == 0 {
+			fmt.Println("   ❌ ERROR: Candle close price is 0!")
+		} else {
+			fmt.Println("   ✅ SUCCESS: Got valid candle data!")
+		}
+	}
+
+	// Test 3: Get position
+	fmt.Println("\n3. Testing position fetch...")
+	position, err := client.GetPosition(cfg.Trading.Symbol, cfg.Hyperliquid.AccountAddress)
+	if err != nil {
+		fmt.Printf("   Warning: %v\n", err)
+	} else {
+		fmt.Printf("   Symbol: %s\n", position.Symbol)
+		fmt.Printf("   Side: %s\n", position.Side)
+		fmt.Printf("   Size: %.4f\n", position.Size)
+		if position.Size > 0 {
+			fmt.Printf("   Entry Price: $%.2f\n", position.EntryPrice)
+			fmt.Printf("   PnL: %.2f%%\n", position.PnLPercent)
+		}
+		fmt.Println("   ✅ SUCCESS: Position check completed!")
+	}
+
+	fmt.Println("\n==========================================")
+	fmt.Println("All API tests completed!")
+}

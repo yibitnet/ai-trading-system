@@ -1,0 +1,64 @@
+package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+)
+
+func main() {
+	url := "https://api.hyperliquid.xyz/info"
+
+	req := map[string]interface{}{
+		"type": "metaAndAssetCtxs",
+	}
+
+	jsonData, _ := json.Marshal(req)
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+
+	var result []interface{}
+	json.Unmarshal(body, &result)
+
+	if len(result) >= 2 {
+		assetCtxs := result[1].([]interface{})
+		// Find ETH (should be second, index 1)
+		if len(assetCtxs) > 1 {
+			ethData := assetCtxs[1].(map[string]interface{})
+
+			fmt.Println("ETH Data:")
+			fmt.Printf("  coin: %v\n", ethData["coin"])
+			fmt.Printf("  markPx: %v\n", ethData["markPx"])
+			fmt.Printf("  prevDayPx: %v\n", ethData["prevDayPx"])
+			fmt.Printf("  dayNtlVlm: %v\n", ethData["dayNtlVlm"])
+			fmt.Printf("  dayBaseVlm: %v\n", ethData["dayBaseVlm"])
+			fmt.Printf("  openInterest: %v\n", ethData["openInterest"])
+
+			// Calculate change
+			markPx, _ := ethData["markPx"].(string)
+			prevDayPx, _ := ethData["prevDayPx"].(string)
+			dayNtlVlm, _ := ethData["dayNtlVlm"].(string)
+
+			var mark, prev, vol float64
+			fmt.Sscanf(markPx, "%f", &mark)
+			fmt.Sscanf(prevDayPx, "%f", &prev)
+			fmt.Sscanf(dayNtlVlm, "%f", &vol)
+
+			change := ((mark - prev) / prev) * 100
+
+			fmt.Printf("\nParsed values:\n")
+			fmt.Printf("  Current Price: $%.2f\n", mark)
+			fmt.Printf("  Previous Price: $%.2f\n", prev)
+			fmt.Printf("  24h Change: %.2f%%\n", change)
+			fmt.Printf("  24h Volume: $%.2f\n", vol)
+		}
+	}
+}

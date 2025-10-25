@@ -1,0 +1,50 @@
+# AI Trading System Test Configuration
+# This is a safe configuration for testing without real trading
+
+# Trading Parameters
+trading:
+  symbol: "ETH"
+  timeframe: "5m"
+  interval: "5m"
+  max_position_size: 0.05  # Only 5% of capital
+  min_confidence: 0.8      # Higher confidence required
+  trading_enabled: false   # SIMULATION MODE - No real trades
+
+# Risk Management Parameters
+risk:
+  max_drawdown: 0.03       # Conservative 3% max drawdown
+  daily_loss_limit: 0.01   # Only 1% daily loss allowed
+  position_risk_per_trade: 0.005  # 0.5% per trade
+  max_total_exposure: 0.15  # Maximum 15% total exposure
+  correlation_limit: 0.8
+  min_risk_reward_ratio: 2.5  # Higher risk/reward requirement
+
+# AI Configuration
+ai:
+  provider: "deepseek"
+  api_key: "${DEEPSEEK_API_KEY}"
+  base_url: "https://api.deepseek.com/v1"
+  model: "deepseek-chat"
+  temperature: 0.1  # Very conservative
+  max_tokens: 1000
+  timeout: 30
+
+# Hyperliquid Configuration
+hyperliquid:
+  api_url: "https://api.hyperliquid.xyz"
+  private_key: "${HYPERLIQUID_PRIVATE_KEY}"
+  account_address: "${HYPERLIQUID_ADDRESS}"
+  testnet: false
+
+# Monitoring & Logging
+monitoring:
+  log_level: "debug"  # Verbose logging for testing
+  log_file: "logs/trading_test.log"
+  performance_tracking: true
+  alert_on_error: true
+
+# System Settings
+system:
+  max_retries: 3
+  retry_delay: 5
+  health_check_interval: 60

@@ -1,0 +1,57 @@
+# AI Trading System Configuration
+
+# Trading Parameters
+trading:
+  symbols: ["ETH", "BTC", "DOGE"]  # Multiple symbols to trade
+  timeframe: "15m"
+  interval: "1m"
+  max_position_size: 0.1
+  min_confidence: 0.7
+  trading_enabled: false
+  max_open_positions: 2  # Maximum number of concurrent positions
+  max_leverage: 10       # Maximum leverage multiplier
+
+# Risk Management Parameters
+risk:
+  max_drawdown: 0.05
+  daily_loss_limit: 0.02
+  position_risk_per_trade: 0.01
+  max_total_exposure: 0.25
+  correlation_limit: 0.8
+  min_risk_reward_ratio: 2.0
+
+# AI Configuration
+ai:
+  provider: "qwen"  # Options: "deepseek", "qwen"
+  api_key: ""
+  base_url: "https://api.deepseek.com/v1"
+  model: "deepseek-chat"
+  temperature: 0.1
+  max_tokens: 1000
+  timeout: 30
+
+  # Qwen Configuration (used when provider is "qwen")
+  qwen:
+    api_key: ""
+    base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    model: "qwen3-max"
+
+# Hyperliquid Configuration
+hyperliquid:
+  api_url: "https://api.hyperliquid.xyz"
+  private_key: "0x14d10bf5848c7"
+  account_address: "0x0e1cb883c6164e1a7d5"
+  testnet: false
+
+# Monitoring & Logging
+monitoring:
+  log_level: "info"
+  log_file: "logs/trading.log"
+  performance_tracking: true
+  alert_on_error: true
+
+# System Settings
+system:
+  max_retries: 3
+  retry_delay: 5
+  health_check_interval: 60

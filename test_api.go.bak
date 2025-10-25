@@ -1,0 +1,134 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"time"
+)
+
+func main() {
+	// Test Hyperliquid API
+	fmt.Println("Testing Hyperliquid API...")
+	fmt.Println("=====================================")
+
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	// Test 1: Meta and Asset Contexts
+	fmt.Println("\n1. Testing /info endpoint (metaAndAssetCtxs)...")
+	testMetaAndAssetCtxs(client)
+
+	// Test 2: All mids (current prices)
+	fmt.Println("\n2. Testing /info endpoint (allMids)...")
+	testAllMids(client)
+
+	// Test 3: Candles
+	fmt.Println("\n3. Testing candle data...")
+	testCandles(client)
+}
+
+func testMetaAndAssetCtxs(client *http.Client) {
+	url := "https://api.hyperliquid.xyz/info"
+
+	payload := map[string]interface{}{
+		"type": "metaAndAssetCtxs",
+	}
+
+	resp, err := doRequest(client, url, payload)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	// Pretty print
+	prettyPrint(resp)
+}
+
+func testAllMids(client *http.Client) {
+	url := "https://api.hyperliquid.xyz/info"
+
+	payload := map[string]interface{}{
+		"type": "allMids",
+	}
+
+	resp, err := doRequest(client, url, payload)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	// Pretty print
+	prettyPrint(resp)
+}
+
+func testCandles(client *http.Client) {
+	url := "https://api.hyperliquid.xyz/info"
+
+	endTime := time.Now().Unix() * 1000
+	startTime := endTime - (150 * 5 * 60 * 1000) // 150 * 5 minutes
+
+	payload := map[string]interface{}{
+		"type": "candleSnapshot",
+		"req": map[string]interface{}{
+			"coin":      "ETH",
+			"interval":  "5m",
+			"startTime": startTime,
+			"endTime":   endTime,
+		},
+	}
+
+	resp, err := doRequest(client, url, payload)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	// Pretty print
+	prettyPrint(resp)
+}
+
+func doRequest(client *http.Client, url string, payload interface{}) (interface{}, error) {
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.Post(url, "application/json", nil)
+	if err != nil {
+		// Try with body
+		import2 "bytes"
+		resp, err = client.Post(url, "application/json", import2.NewBuffer(jsonData))
+		if err != nil {
+			return nil, err
+		}
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var result interface{}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func prettyPrint(data interface{}) {
+	jsonData, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		fmt.Printf("Error marshaling: %v\n", err)
+		return
+	}
+	fmt.Println(string(jsonData))
+}

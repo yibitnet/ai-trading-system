@@ -1,0 +1,59 @@
+=== RUN   TestMainConfigLoad
+--- PASS: TestMainConfigLoad (0.00s)
+=== RUN   TestTradingBotCreation
+--- PASS: TestTradingBotCreation (0.00s)
+=== RUN   TestIntervalToCron
+--- PASS: TestIntervalToCron (0.00s)
+=== RUN   TestIndicatorCalculationPipeline
+--- PASS: TestIndicatorCalculationPipeline (0.00s)
+=== RUN   TestGetLogLevel
+--- PASS: TestGetLogLevel (0.00s)
+PASS
+coverage: 21.2% of statements
+ok  	aitrading	0.013s	coverage: 21.2% of statements
+	aitrading/ai		coverage: 0.0% of statements
+=== RUN   TestLoadConfig
+--- PASS: TestLoadConfig (0.00s)
+=== RUN   TestLoadTestConfig
+--- PASS: TestLoadTestConfig (0.00s)
+=== RUN   TestEnvironmentVariableExpansion
+--- PASS: TestEnvironmentVariableExpansion (0.00s)
+PASS
+coverage: 73.3% of statements
+ok  	aitrading/config	0.004s	coverage: 73.3% of statements
+	aitrading/executor		coverage: 0.0% of statements
+	aitrading/hyperliquid		coverage: 0.0% of statements
+=== RUN   TestSMA
+--- PASS: TestSMA (0.00s)
+=== RUN   TestEMA
+--- PASS: TestEMA (0.00s)
+=== RUN   TestRSI
+--- PASS: TestRSI (0.00s)
+=== RUN   TestBollingerBands
+--- PASS: TestBollingerBands (0.00s)
+=== RUN   TestCalculateWithInsufficientData
+--- PASS: TestCalculateWithInsufficientData (0.00s)
+=== RUN   TestCalculateWithValidData
+--- PASS: TestCalculateWithValidData (0.00s)
+PASS
+coverage: 69.6% of statements
+ok  	aitrading/indicators	0.002s	coverage: 69.6% of statements
+=== RUN   TestNewController
+--- PASS: TestNewController (0.00s)
+=== RUN   TestCheckDecision_LowConfidence
+--- PASS: TestCheckDecision_LowConfidence (0.00s)
+=== RUN   TestCheckDecision_ValidLongPosition
+--- PASS: TestCheckDecision_ValidLongPosition (0.00s)
+=== RUN   TestCheckDecision_InvalidStopLoss
+--- PASS: TestCheckDecision_InvalidStopLoss (0.00s)
+=== RUN   TestCheckStopLoss
+--- PASS: TestCheckStopLoss (0.00s)
+=== RUN   TestCheckTakeProfit
+--- PASS: TestCheckTakeProfit (0.00s)
+=== RUN   TestUpdatePnL
+--- PASS: TestUpdatePnL (0.00s)
+=== RUN   TestDailyPnLReset
+--- PASS: TestDailyPnLReset (0.00s)
+PASS
+coverage: 59.3% of statements
+ok  	aitrading/risk	0.012s	coverage: 59.3% of statements
