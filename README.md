@@ -1,5 +1,7 @@
 # AI Trading System
 
+中文 | [English](README_EN.md)
+
 一个基于AI的加密货币自动交易系统,支持Hyperliquid交易所。
 
 ## ✨ 核心特性
