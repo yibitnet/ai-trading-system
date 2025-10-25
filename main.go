@@ -351,6 +351,9 @@ func (bot *TradingBot) executeDecision(decision *ai.Decision, marketInfo *hyperl
 		"message":  result.Message,
 	}).Info("Trade executed")
 
+	// Print execution result to console
+	bot.printExecutionResult(result, symbol)
+
 	return nil
 }
 
@@ -995,6 +998,71 @@ func getLogLevel(level string) logrus.Level {
 	default:
 		return logrus.InfoLevel
 	}
+}
+
+// printExecutionResult prints trade execution result to console
+func (bot *TradingBot) printExecutionResult(result *executor.ExecutionResult, symbol string) {
+	fmt.Println("\n" + strings.Repeat("=", 80))
+
+	// Determine color and emoji based on success
+	var statusColor, statusEmoji, statusText string
+	if result.Success {
+		statusColor = colorGreen
+		statusEmoji = "✅"
+		statusText = "SUCCESS"
+	} else {
+		statusColor = colorRed
+		statusEmoji = "❌"
+		statusText = "FAILED"
+	}
+
+	fmt.Printf("%s  %s Order Execution %s - %s @ %s%s\n",
+		statusColor, statusEmoji, statusText, symbol,
+		time.Now().Format("2006-01-02 15:04:05"), colorReset)
+	fmt.Println(strings.Repeat("=", 80))
+
+	// Action info
+	fmt.Printf("\n📋 Action: %s\n", bot.formatAction(result.Action))
+
+	// Order details (if not HOLD)
+	if result.Action != "HOLD" {
+		if result.Side != "" {
+			sideEmoji := "🟢"
+			if result.Side == "SHORT" {
+				sideEmoji = "🔴"
+			}
+			fmt.Printf("   Side:   %s %s\n", sideEmoji, result.Side)
+		}
+
+		if result.Size > 0 {
+			fmt.Printf("   Size:   %.4f %s\n", result.Size, symbol)
+		}
+
+		if result.Price > 0 {
+			fmt.Printf("   Price:  $%s\n", bot.formatPrice(result.Price))
+		}
+
+		if result.OrderID != "" {
+			fmt.Printf("   Order ID: %s\n", result.OrderID)
+		}
+	}
+
+	// Status message
+	if result.Message != "" {
+		fmt.Printf("\n💬 Message: %s\n", result.Message)
+	}
+
+	// Additional info for successful orders
+	if result.Success && (result.Action == "OPEN_LONG" || result.Action == "OPEN_SHORT") {
+		if result.StopLoss > 0 {
+			fmt.Printf("\n🛡️  Stop Loss:   $%s\n", bot.formatPrice(result.StopLoss))
+		}
+		if result.TakeProfit > 0 {
+			fmt.Printf("🎯 Take Profit: $%s\n", bot.formatPrice(result.TakeProfit))
+		}
+	}
+
+	fmt.Println("\n" + strings.Repeat("=", 80) + "\n")
 }
 
 func main() {
