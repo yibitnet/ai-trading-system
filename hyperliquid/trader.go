@@ -59,12 +59,12 @@ type LimitOrderType struct {
 
 // PlaceOrderRequest represents order placement request
 type PlaceOrderRequest struct {
-	Asset      string    `json:"asset"`
-	IsBuy      bool      `json:"isBuy"`
-	LimitPx    string    `json:"limitPx"`
-	Sz         string    `json:"sz"`
-	OrderType  OrderType `json:"orderType"`
-	ReduceOnly bool      `json:"reduceOnly"`
+	Asset      int       `json:"a"`      // Asset index
+	IsBuy      bool      `json:"b"`      // Buy (true) or Sell (false)
+	Price      string    `json:"p"`      // Price
+	Size       string    `json:"s"`      // Size
+	ReduceOnly bool      `json:"r"`      // Reduce only
+	OrderType  OrderType `json:"t"`      // Order type
 }
 
 // OrderResult represents order execution result
@@ -93,12 +93,22 @@ func (t *Trader) ClosePosition(symbol string, side string, size float64, price f
 
 // placeOrder places an order on Hyperliquid
 func (t *Trader) placeOrder(symbol string, isBuy bool, size float64, price float64, reduceOnly bool) (*OrderResult, error) {
+	// Get asset index for the symbol
+	assetIndex, err := t.getAssetIndex(symbol)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get asset index: %w", err)
+	}
+
+	// Format price and size strings (remove trailing zeros as required by Hyperliquid)
+	priceStr := formatPriceForAPI(price)
+	sizeStr := formatPriceForAPI(size)
+
 	// Create order request
 	order := PlaceOrderRequest{
-		Asset:  symbol,
+		Asset:  assetIndex,
 		IsBuy:  isBuy,
-		LimitPx: fmt.Sprintf("%.6f", price),
-		Sz:     fmt.Sprintf("%.6f", size),
+		Price:  priceStr,
+		Size:   sizeStr,
 		OrderType: OrderType{
 			Limit: &LimitOrderType{
 				Tif: "Gtc", // Good till cancel
@@ -109,8 +119,8 @@ func (t *Trader) placeOrder(symbol string, isBuy bool, size float64, price float
 
 	// Create action payload
 	action := map[string]interface{}{
-		"type": "order",
-		"orders": []PlaceOrderRequest{order},
+		"type":     "order",
+		"orders":   []PlaceOrderRequest{order},
 		"grouping": "na",
 	}
 
@@ -160,6 +170,50 @@ func (t *Trader) placeOrder(symbol string, isBuy bool, size float64, price float
 	}
 
 	return result, nil
+}
+
+// getAssetIndex returns the asset index for a symbol
+func (t *Trader) getAssetIndex(symbol string) (int, error) {
+	// Fetch meta info to get asset indices
+	url := fmt.Sprintf("%s/info", t.client.baseURL)
+	req := map[string]interface{}{
+		"type": "meta",
+	}
+
+	respData, err := t.client.doRequest("POST", url, req)
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch meta info: %w", err)
+	}
+
+	// Parse meta response to find asset index
+	if metaMap, ok := respData.(map[string]interface{}); ok {
+		if universe, ok := metaMap["universe"].([]interface{}); ok {
+			for i, asset := range universe {
+				if assetMap, ok := asset.(map[string]interface{}); ok {
+					if name, ok := assetMap["name"].(string); ok && name == symbol {
+						return i, nil
+					}
+				}
+			}
+		}
+	}
+
+	return 0, fmt.Errorf("symbol %s not found in universe", symbol)
+}
+
+// formatPriceForAPI formats a float64 to string removing trailing zeros
+func formatPriceForAPI(value float64) string {
+	// Format with high precision
+	str := fmt.Sprintf("%.12f", value)
+	// Remove trailing zeros
+	for len(str) > 0 && str[len(str)-1] == '0' {
+		str = str[:len(str)-1]
+	}
+	// Remove trailing decimal point
+	if len(str) > 0 && str[len(str)-1] == '.' {
+		str = str[:len(str)-1]
+	}
+	return str
 }
 
 // CancelOrder cancels an existing order
